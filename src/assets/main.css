@@ -1,0 +1,9 @@
+body {
+    margin: 0;
+    background-color: #f9fafb;
+    font-family: Inter;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
