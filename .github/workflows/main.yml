@@ -1,0 +1,31 @@
+name: Vue CI/CD
+on:
+ push:
+    branches: [ main ]
+ pull_request:
+    branches: [ main ]
+
+jobs:
+ web-deploy:
+    name: Deploying
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js
+        uses: actions/checkout@v2.3.2
+        with:
+          node-version: '20'
+      
+      - name: Install NPM Dependencies
+        run: npm install
+        
+      - name: Build
+        run: npm run build
+        
+      - name: 📂 Sync files
+        uses: SamKirkland/FTP-Deploy-Action@4.0.0
+        with:
+          server: ${{ secrets.SERVER }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          local-dir: ./dist/
+      
