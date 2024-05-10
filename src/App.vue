@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue';
-import intentsData from './datasets/intents.json';
+import intentsData1 from './datasets/intents.json';
+import intentsData2 from './datasets/intents1.json';
+import nlp from 'compromise';
 
 const userInput = ref('');
 const messages = ref([]);
@@ -23,7 +25,25 @@ function generateResponse(input) {
   // Convert user input to lower case and split into words
   const inputWords = input.toLowerCase().split(/\s+/);
 
-  for (const intent of intentsData.intents) {
+  for (const intent of intentsData1.intents) {
+    let score = 0;
+    for (const pattern of intent.patterns) {
+      const words = pattern.toLowerCase().split(/\s+/);
+      // Increment score for each word in the pattern that matches any word in the input
+      words.forEach(word => {
+        if (inputWords.includes(word)) {
+          score++;
+        }
+      });
+    }
+    // Update bestMatch if this intent's score is higher than the current maxScore
+    if (score > maxScore) {
+      maxScore = score;
+      bestMatch = intent;
+    }
+  }
+
+  for (const intent of intentsData2.intents) {
     let score = 0;
     for (const pattern of intent.patterns) {
       const words = pattern.toLowerCase().split(/\s+/);
@@ -42,10 +62,12 @@ function generateResponse(input) {
   }
 
   if (bestMatch) {
+    const resLen = bestMatch.responses.length;
+    const randomIndex = Math.floor(Math.random() * resLen);
     const botMessage = {
       id: messages.value.length,
       sender: 'Bot',
-      content: bestMatch.responses[0]  // Assuming one response per intent
+      content: bestMatch.responses[randomIndex]  // Assuming one response per intent
     };
     messages.value.push(botMessage);
   } else {
@@ -55,7 +77,6 @@ function generateResponse(input) {
       content: "Sorry, I'm not sure how to respond to that."
     });
   }
-  console.log(messages.value[messages.value.length - 1]);
 }
 </script>
 
