@@ -26,12 +26,65 @@ const sendMessage = () => {
   }
 };
 
+// const findIntent = (userMessage) => {
+//   const allIntents = [...intentsData1.intents, ...intentsData2.intents];
+//   return allIntents.find((intent) =>
+//     intent.patterns.some((pattern) => pattern.toLowerCase() === userMessage.toLowerCase())
+//   );
+// };
+
+function levenshteinDistance(s, t) {
+  var d = [];
+  var m = s.length;
+  var n = t.length;
+
+  for (var i = 0; i <= m; i++) {
+    d[i] = [];
+    d[i][0] = i;
+  }
+  for (var j = 0; j <= n; j++) {
+    d[0][j] = j;
+  }
+
+  for (var j = 1; j <= n; j++) {
+    for (var i = 1; i <= m; i++) {
+      if (s.charAt(i - 1) == t.charAt(j - 1)) {
+        d[i][j] = d[i - 1][j - 1];
+      } else {
+        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + 1);
+      }
+    }
+  }
+console.log(s);
+console.log(t);
+console.log(d[m][n]);
+  return d[m][n];
+}
+
 const findIntent = (userMessage) => {
   const allIntents = [...intentsData1.intents, ...intentsData2.intents];
-  return allIntents.find((intent) =>
+  const exactMatch = allIntents.find((intent) =>
     intent.patterns.some((pattern) => pattern.toLowerCase() === userMessage.toLowerCase())
   );
+  if (exactMatch) {
+    return exactMatch;
+  } else {
+    // Find the closest match using Levenshtein distance
+    let closestIntent = null;
+    let minDistance = Infinity;
+    allIntents.forEach((intent) => {
+      intent.patterns.forEach((pattern) => {
+        const distance = levenshteinDistance(userMessage.toLowerCase(), pattern.toLowerCase());
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestIntent = intent;
+        }
+      });
+    });
+    return closestIntent; // Return the closest matching intent
+  }
 };
+
 </script>
 
 <template>
