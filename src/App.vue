@@ -22,16 +22,9 @@ const sendMessage = () => {
       messages.push({ id: messages.length, text: `Bot: I'm sorry, I couldn't understand.`, sender: 'bot' });
     }
 
-    userInput.value = ''; // Clear input after sending message
+    userInput.value = '';
   }
 };
-
-// const findIntent = (userMessage) => {
-//   const allIntents = [...intentsData1.intents, ...intentsData2.intents];
-//   return allIntents.find((intent) =>
-//     intent.patterns.some((pattern) => pattern.toLowerCase() === userMessage.toLowerCase())
-//   );
-// };
 
 function levenshteinDistance(s, t) {
   var d = [];
@@ -69,7 +62,7 @@ const findIntent = (userMessage) => {
   if (exactMatch) {
     return exactMatch;
   } else {
-    // Find the closest match using Levenshtein distance
+    // use fuzzy logic
     let closestIntent = null;
     let minDistance = Infinity;
     allIntents.forEach((intent) => {
@@ -81,7 +74,7 @@ const findIntent = (userMessage) => {
         }
       });
     });
-    return closestIntent; // Return the closest matching intent
+    return closestIntent;
   }
 };
 
