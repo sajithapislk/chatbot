@@ -1,83 +1,37 @@
 <script setup>
-import { ref } from 'vue';
+import { reactive, ref } from 'vue';
 import intentsData1 from './datasets/intents.json';
 import intentsData2 from './datasets/intents1.json';
-import nlp from 'compromise';
 
 const userInput = ref('');
-const messages = ref([]);
+const messages = reactive([]);
 
-function handleSubmit() {
-  const userMessage = {
-    id: messages.value.length,
-    sender: 'User',
-    content: userInput.value
-  };
-  messages.value.push(userMessage);
-  generateResponse(userInput.value);
-  userInput.value = '';
-}
+const sendMessage = () => {
+  const userMessage = userInput.value.trim();
 
-function generateResponse(input) {
-  let bestMatch = null;
-  let maxScore = 0;  // Keep track of the highest score found.
+  if (userMessage !== '') {
+    messages.push({ id: messages.length, text: `User: ${userMessage}`, sender: 'user' });
 
-  // Convert user input to lower case and split into words
-  const inputWords = input.toLowerCase().split(/\s+/);
-
-  for (const intent of intentsData1.intents) {
-    let score = 0;
-    for (const pattern of intent.patterns) {
-      const words = pattern.toLowerCase().split(/\s+/);
-      // Increment score for each word in the pattern that matches any word in the input
-      words.forEach(word => {
-        if (inputWords.includes(word)) {
-          score++;
-        }
-      });
-    }
-    // Update bestMatch if this intent's score is higher than the current maxScore
-    if (score > maxScore) {
-      maxScore = score;
-      bestMatch = intent;
-    }
-  }
-
-  for (const intent of intentsData2.intents) {
-    let score = 0;
-    for (const pattern of intent.patterns) {
-      const words = pattern.toLowerCase().split(/\s+/);
-      // Increment score for each word in the pattern that matches any word in the input
-      words.forEach(word => {
-        if (inputWords.includes(word)) {
-          score++;
-        }
-      });
-    }
-    // Update bestMatch if this intent's score is higher than the current maxScore
-    if (score > maxScore) {
-      maxScore = score;
-      bestMatch = intent;
-    }
-  }
-
-  if (bestMatch) {
-    const resLen = bestMatch.responses.length;
+    const intent = findIntent(userMessage);
+    if (intent) {
+    const resLen = intent.responses.length;
     const randomIndex = Math.floor(Math.random() * resLen);
-    const botMessage = {
-      id: messages.value.length,
-      sender: 'Bot',
-      content: bestMatch.responses[randomIndex]  // Assuming one response per intent
-    };
-    messages.value.push(botMessage);
-  } else {
-    messages.value.push({
-      id: messages.value.length,
-      sender: 'Bot',
-      content: "Sorry, I'm not sure how to respond to that."
-    });
+      const response = intent.responses[randomIndex];
+      messages.push({ id: messages.length, text: `Bot: ${response}`, sender: 'bot' });
+    } else {
+      messages.push({ id: messages.length, text: `Bot: I'm sorry, I couldn't understand.`, sender: 'bot' });
+    }
+
+    userInput.value = ''; // Clear input after sending message
   }
-}
+};
+
+const findIntent = (userMessage) => {
+  const allIntents = [...intentsData1.intents, ...intentsData2.intents];
+  return allIntents.find((intent) =>
+    intent.patterns.some((pattern) => pattern.toLowerCase() === userMessage.toLowerCase())
+  );
+};
 </script>
 
 <template>
@@ -104,19 +58,19 @@ function generateResponse(input) {
       <div id="chatbox" class="p-4 h-80 overflow-y-auto">
         <!-- Chat messages will be displayed here -->
        <template v-for="(row, index) in messages">
-        <div class="mb-2 text-right" v-if="row.sender == 'User'">
-          <p class="bg-blue-500 text-white rounded-lg py-2 px-4 inline-block">{{row.content}}</p>
+        <div class="mb-2 text-right" v-if="row.sender == 'user'">
+          <p class="bg-blue-500 text-white rounded-lg py-2 px-4 inline-block">{{row.text}}</p>
         </div>
         <div class="mb-2" v-else>
-          <p class="bg-gray-200 text-gray-700 rounded-lg py-2 px-4 inline-block">{{row.content}}
+          <p class="bg-gray-200 text-gray-700 rounded-lg py-2 px-4 inline-block">{{row.text}}
           </p>
         </div>
        </template>
       </div>
       <div class="p-4 border-t flex">
-        <input v-model="userInput" @keyup.enter="handleSubmit" type="text" placeholder="Type a message"
+        <input v-model="userInput" @keyup.enter="sendMessage" type="text" placeholder="Type a message"
           class="w-full px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <button @click="handleSubmit"
+        <button @click="sendMessage"
           class="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600 transition duration-300">Send</button>
       </div>
     </div>
