@@ -1,83 +1,34 @@
 <script setup>
-import { reactive, ref } from 'vue';
+import { ref, reactive } from 'vue';
 import intentsData1 from './datasets/intents.json';
 import intentsData2 from './datasets/intents1.json';
+import BotService from './services/BotService';
 
 const userInput = ref('');
 const messages = reactive([]);
+
+const botService = new BotService(intentsData1, intentsData2);
 
 const sendMessage = () => {
   const userMessage = userInput.value.trim();
 
   if (userMessage !== '') {
-    messages.push({ id: messages.length, text: `User: ${userMessage}`, sender: 'user' });
+    messages.push({
+      id: messages.length,
+      text: `User: ${userMessage}`,
+      sender: 'user',
+    });
 
-    const intent = findIntent(userMessage);
-    if (intent) {
-    const resLen = intent.responses.length;
-    const randomIndex = Math.floor(Math.random() * resLen);
-      const response = intent.responses[randomIndex];
-      messages.push({ id: messages.length, text: `Bot: ${response}`, sender: 'bot' });
-    } else {
-      messages.push({ id: messages.length, text: `Bot: I'm sorry, I couldn't understand.`, sender: 'bot' });
-    }
+    const response = botService.getResponse(userMessage);
+    messages.push({
+      id: messages.length,
+      text: `Bot: ${response}`,
+      sender: 'bot',
+    });
 
     userInput.value = '';
   }
 };
-
-function levenshteinDistance(s, t) {
-  var d = [];
-  var m = s.length;
-  var n = t.length;
-
-  for (var i = 0; i <= m; i++) {
-    d[i] = [];
-    d[i][0] = i;
-  }
-  for (var j = 0; j <= n; j++) {
-    d[0][j] = j;
-  }
-
-  for (var j = 1; j <= n; j++) {
-    for (var i = 1; i <= m; i++) {
-      if (s.charAt(i - 1) == t.charAt(j - 1)) {
-        d[i][j] = d[i - 1][j - 1];
-      } else {
-        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + 1);
-      }
-    }
-  }
-console.log(s);
-console.log(t);
-console.log(d[m][n]);
-  return d[m][n];
-}
-
-const findIntent = (userMessage) => {
-  const allIntents = [...intentsData1.intents, ...intentsData2.intents];
-  const exactMatch = allIntents.find((intent) =>
-    intent.patterns.some((pattern) => pattern.toLowerCase() === userMessage.toLowerCase())
-  );
-  if (exactMatch) {
-    return exactMatch;
-  } else {
-    // use fuzzy logic
-    let closestIntent = null;
-    let minDistance = Infinity;
-    allIntents.forEach((intent) => {
-      intent.patterns.forEach((pattern) => {
-        const distance = levenshteinDistance(userMessage.toLowerCase(), pattern.toLowerCase());
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestIntent = intent;
-        }
-      });
-    });
-    return closestIntent;
-  }
-};
-
 </script>
 
 <template>
