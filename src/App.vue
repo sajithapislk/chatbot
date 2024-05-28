@@ -12,8 +12,7 @@ const mockTypingAfter = 1500;
 const mockResponseAfter = 3000;
 
 const botService = new BotService();
-
-const sendMessage = () => {
+const sendMessage = () => { // Make sendMessage asynchronous
   if (waitingOnResponse.value) return;
   waitingOnResponse.value = true;
 
@@ -27,18 +26,19 @@ const sendMessage = () => {
       beingTyped: false
     }));
 
-    const responseMessage = botService.getResponse(userMessage);
+    const responseMessages = botService.getResponse(userMessage); // Await the response
     setTimeout(() => {
       showTyping.value = true;
     }, mockTypingAfter);
 
-    setTimeout(() => {
-      showTyping.value = false;
+    responseMessages.map((message, index) =>
+      new Promise(resolve => setTimeout(() => {
+        typeOutResponse(message);
+        resolve();
+      }, mockResponseAfter * (index + 1)))
 
-      typeOutResponse(responseMessage);
-    }, mockResponseAfter);
-
-
+    );
+    showTyping.value = false;
     userInput.value = '';
   }
 };
@@ -70,7 +70,6 @@ const typeOutResponse = (message) => {
       clearInterval(interval);
     }
   }, 30);
-  console.log(responseMessage.value);
 };
 
 onMounted(() => {
@@ -91,7 +90,7 @@ onMounted(() => {
         <template v-for="message in messages">
           <div class="message rounded-lg py-2 px-6 mb-4"
             :class="message.value.sender === 'bot' ? 'assistant bg-blue-100 border-blue-100 self-start' : 'user bg-green-200 border-green-200 self-end'">
-            <span v-text="message.value.text"></span>
+            <span v-html="message.value.text"></span>
             <template v-if="message.value.beingTyped">
               <span class="w-2.5 bg-gray-600 h-4 inline-block -mb-0.5 align-baseline blink"></span>
             </template>
