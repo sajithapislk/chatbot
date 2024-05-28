@@ -1,75 +1,122 @@
 <script setup>
-import { ref, reactive } from 'vue';
-import intentsData1 from './datasets/intents.json';
-import intentsData2 from './datasets/intents1.json';
+import { ref, reactive, onMounted } from 'vue';
 import BotService from './services/BotService';
 
 const userInput = ref('');
 const messages = reactive([]);
 
-const botService = new BotService(intentsData1, intentsData2);
+const showTyping = ref(false);
+const waitingOnResponse = ref(false);
+
+const mockTypingAfter = 1500;
+const mockResponseAfter = 3000;
+
+const botService = new BotService();
 
 const sendMessage = () => {
+  if (waitingOnResponse.value) return;
+  waitingOnResponse.value = true;
+
   const userMessage = userInput.value.trim();
 
   if (userMessage !== '') {
-    messages.push({
+    messages.push(ref({
       id: messages.length,
-      text: `User: ${userMessage}`,
+      text: userMessage,
       sender: 'user',
-    });
+      beingTyped: false
+    }));
 
-    const response = botService.getResponse(userMessage);
-    messages.push({
-      id: messages.length,
-      text: `Bot: ${response}`,
-      sender: 'bot',
-    });
+    const responseMessage = botService.getResponse(userMessage);
+    setTimeout(() => {
+      showTyping.value = true;
+    }, mockTypingAfter);
+
+    setTimeout(() => {
+      showTyping.value = false;
+
+      typeOutResponse(responseMessage);
+    }, mockResponseAfter);
+
 
     userInput.value = '';
   }
 };
+
+const mockResponse = () => {
+  setTimeout(() => {
+    showTyping.value = true;
+  }, mockTypingAfter);
+
+  setTimeout(() => {
+    showTyping.value = false;
+
+    const responseMessage = 'Hello there. I am Chatbot.';
+    typeOutResponse(responseMessage);
+  }, mockResponseAfter);
+};
+
+const typeOutResponse = (message) => {
+  showTyping.value = false;
+  let responseMessage = ref({ id: messages.length, sender: 'bot', text: '', beingTyped: true });
+  messages.push(responseMessage);
+  let i = 0;
+  const interval = setInterval(() => {
+    responseMessage.value.text += message.charAt(i);
+    i++;
+    if (i > message.length - 1) {
+      waitingOnResponse.value = false;
+      responseMessage.value.beingTyped = false;
+      clearInterval(interval);
+    }
+  }, 30);
+  console.log(responseMessage.value);
+};
+
+onMounted(() => {
+  mockResponse();
+});
 </script>
 
 <template>
-  <div class="fixed bottom-0 right-0 mb-4 mr-4">
-    <button id="open-chat"
-      class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-300 flex items-center">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24"
-        stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-      </svg>
-      Chat with Admin Bot
-    </button>
-  </div>
-  <div id="chat-container" class="fixed bottom-16 right-4 w-96">
-    <div class="bg-white shadow-md rounded-lg max-w-lg w-full">
-      <div class="p-4 border-b bg-blue-500 text-white rounded-t-lg flex justify-between items-center">
-        <p class="text-lg font-semibold">Admin Bot</p>
-        <button id="close-chat" class="text-gray-300 hover:text-gray-400 focus:outline-none focus:text-gray-400">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
+  <div class="w-screen h-screen bg-gray-50 flex flex-col" x-data="chat">
+
+    <div class="bg-gray-800 flex justify-center p-4">
+      <span class="text-white text-bold">Chatbot</span>
+    </div>
+
+    <div class="w-full max-w-screen-lg flex-1 m-auto p-8 my-4 pb-20">
+      <div class="flex flex-col">
+
+        <template v-for="message in messages">
+          <div class="message rounded-lg py-2 px-6 mb-4"
+            :class="message.value.sender === 'bot' ? 'assistant bg-blue-100 border-blue-100 self-start' : 'user bg-green-200 border-green-200 self-end'">
+            <span v-text="message.value.text"></span>
+            <template v-if="message.value.beingTyped">
+              <span class="w-2.5 bg-gray-600 h-4 inline-block -mb-0.5 align-baseline blink"></span>
+            </template>
+          </div>
+        </template>
+
+        <template v-if="showTyping">
+          <div class="message assistant rounded-lg py-2.5 px-6 mb-4 bg-blue-100 border-blue-100 self-start">
+            <div class="type-indicator">
+              <span>.</span><span>.</span><span>.</span>
+            </div>
+          </div>
+        </template>
+
       </div>
-      <div id="chatbox" class="p-4 h-80 overflow-y-auto">
-        <!-- Chat messages will be displayed here -->
-       <template v-for="(row, index) in messages">
-        <div class="mb-2 text-right" v-if="row.sender == 'user'">
-          <p class="bg-blue-500 text-white rounded-lg py-2 px-4 inline-block">{{row.text}}</p>
-        </div>
-        <div class="mb-2" v-else>
-          <p class="bg-gray-200 text-gray-700 rounded-lg py-2 px-4 inline-block">{{row.text}}
-          </p>
-        </div>
-       </template>
-      </div>
-      <div class="p-4 border-t flex">
-        <input v-model="userInput" @keyup.enter="sendMessage" type="text" placeholder="Type a message"
-          class="w-full px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <button @click="sendMessage"
-          class="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600 transition duration-300">Send</button>
-      </div>
+
+    </div>
+    <div class="fixed inset-x-0 bottom-0 bg-gray-200">
+      <form class="max-w-screen-lg m-auto w-full p-4 flex space-x-4 justify-center items-center"
+        @submit.prevent="sendMessage">
+        <input id="message" type="text" autocomplete="off" class="border rounded-md p-2 flex-1 border-gray-300"
+          v-model="userInput" @keyup.enter="sendMessage" placeholder="Your message..." />
+        <button class="bg-gray-800 text-white px-4 py-2 rounded-md"
+          :class="{ 'opacity-50': waitingOnResponse }">Send</button>
+      </form>
     </div>
   </div>
 </template>

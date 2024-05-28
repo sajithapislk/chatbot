@@ -1,6 +1,8 @@
 // BotService.js
+import intents1 from './../datasets/intents.json';
+import intents2 from './../datasets/intents1.json';
 class BotService {
-    constructor(intents1, intents2) {
+    constructor() {
       this.intents = [...intents1.intents, ...intents2.intents];
     }
   
