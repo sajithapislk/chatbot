@@ -1,10 +1,11 @@
 // BotService.js
 import intents1 from './../datasets/intents.json';
 import intents2 from './../datasets/intents1.json';
-let _bestPattern;
+
 class BotService {
   constructor() {
     this.intents = [...intents1.intents, ...intents2.intents];
+    this._bestPattern;
   }
 
   levenshteinDistance(s, t) {
@@ -56,7 +57,7 @@ class BotService {
           if (distance < minDistance) {
             minDistance = distance;
             closestIntent = intent;
-            _bestPattern = pattern;
+            this._bestPattern = pattern;
           }
         });
       });
@@ -69,13 +70,12 @@ class BotService {
   }
 
   getResponse(userMessage) {
-    _bestPattern = null;
+    this._bestPattern = null;
     const intent = this.findIntent(userMessage);
-    console.log(intent);
     if (intent) {
       const resLen = intent.responses.length;
       const randomIndex = Math.floor(Math.random() * resLen);
-      return _bestPattern ? [`Showing results for:'${_bestPattern}`, `${intent.responses[randomIndex]}`] : [`${intent.responses[randomIndex]}`];
+      return this._bestPattern ? [`Showing results for:'${this._bestPattern}`, `${intent.responses[randomIndex]}`] : [`${intent.responses[randomIndex]}`];
     } else {
       return ["I'm sorry, I couldn't understand."];
     }
