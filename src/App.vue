@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted,computed } from 'vue';
 import BotService from './services/BotService';
 
 const userInput = ref('');
@@ -12,7 +12,7 @@ const mockTypingAfter = 1500;
 const mockResponseAfter = 3000;
 
 const botService = new BotService();
-const sendMessage = () => { // Make sendMessage asynchronous
+const sendMessage = () => {
   if (waitingOnResponse.value) return;
   waitingOnResponse.value = true;
 
@@ -26,7 +26,13 @@ const sendMessage = () => { // Make sendMessage asynchronous
       beingTyped: false
     }));
 
-    const responseMessages = botService.getResponse(userMessage); // Await the response
+    const responseMessages = botService.getResponse(userMessage);
+    
+    if(checkSameMessage.value){
+      responseMessages.push(`<iframe src="https://giphy.com/embed/26uf1EUQzKKGcIhJS" width="480" height="331" style="" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/hulu-fox-family-guy-26uf1EUQzKKGcIhJS">via GIPHY</a></p>`);
+      responseMessages.push('heyy.. Why are you send me same quaction ??');
+    }
+
     setTimeout(() => {
       showTyping.value = true;
     }, mockTypingAfter);
@@ -71,6 +77,20 @@ const typeOutResponse = (message) => {
     }
   }, 30);
 };
+
+const checkSameMessage = computed(() => {
+  const userMessages = messages.filter(message => message.value.sender === 'user');
+  const _message = userInput.value.trim();
+
+  if (userMessages.length > 2) {
+    const lastTwoMessages = [userMessages[userMessages.length - 2], userMessages[userMessages.length - 1]];
+
+    if (lastTwoMessages.every(msg => msg.value.text === _message)) {
+      return true;
+    }
+  }
+  return false
+});
 
 onMounted(() => {
   mockResponse();
