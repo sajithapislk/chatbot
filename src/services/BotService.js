@@ -75,10 +75,37 @@ class BotService {
     if (intent) {
       const resLen = intent.responses.length;
       const randomIndex = Math.floor(Math.random() * resLen);
+
+      if (intent.tag == 'capture_name') {
+        const name = this.extractName(userMessage);
+        localStorage.setItem('name', name);
+        return [intent.responses[randomIndex].replace("{name}", name)]
+      } else if (intent.tag == 'ask_name') {
+        const name = localStorage.getItem('name');
+        return [intent.responses[randomIndex].replace("{name}", name)]
+      }
+
       return this._bestPattern ? [`Showing results for:'${this._bestPattern}`, `${intent.responses[randomIndex]}`] : [`${intent.responses[randomIndex]}`];
     } else {
       return ["I'm sorry, I couldn't understand."];
     }
+  }
+
+  extractName(userMessage) {
+    const namePatterns = [
+      /my name is (\w+)/i,
+      /i am (\w+)/i,
+      /you can call me (\w+)/i,
+      /it's (\w+)/i
+    ];
+
+    for (let pattern of namePatterns) {
+      const match = userMessage.match(pattern);
+      if (match) {
+        return match[1];
+      }
+    }
+    return null;
   }
 }
 
