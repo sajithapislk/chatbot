@@ -74,7 +74,7 @@ class BotService {
     const intent = this.findIntent(userMessage);
     if (intent) {
       const resLen = intent.responses.length;
-      const randomIndex = Math.floor(Math.random() * resLen);
+      const randomIndex = window.crypto ? window.crypto.getRandomValues(new Uint32Array(1))[0] % resLen : Math.floor(Math.random() * resLen);
 
       if (intent.tag == 'capture_name') {
         const name = this.extractName(userMessage);
