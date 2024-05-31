@@ -85,7 +85,7 @@ class BotService {
         return [intent.responses[randomIndex].replace("{name}", name)]
       }
 
-      return this._bestPattern ? [`Showing results for:'${this._bestPattern}`, `${intent.responses[randomIndex]}`] : [`${intent.responses[randomIndex]}`];
+      return this._bestPattern ? [`Showing results for: ${this._bestPattern}`, `${intent.responses[randomIndex]}`] : [`${intent.responses[randomIndex]}`];
     } else {
       return ["I'm sorry, I couldn't understand."];
     }
