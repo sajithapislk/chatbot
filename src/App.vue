@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted,computed } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import BotService from './services/BotService';
 
 const userInput = ref('');
@@ -18,35 +18,38 @@ const sendMessage = () => {
 
   const userMessage = userInput.value.trim();
 
-  if (userMessage !== '') {
-    messages.push(ref({
-      id: messages.length,
-      text: userMessage,
-      sender: 'user',
-      beingTyped: false
-    }));
-
-    const responseMessages = botService.getResponse(userMessage);
-    
-    if(checkSameMessage.value){
-      responseMessages.push(`<iframe src="https://giphy.com/embed/26uf1EUQzKKGcIhJS" width="480" height="331" style="" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/hulu-fox-family-guy-26uf1EUQzKKGcIhJS">via GIPHY</a></p>`);
-      responseMessages.push('heyy.. Why are you send me same quaction ??');
-    }
-
-    setTimeout(() => {
-      showTyping.value = true;
-    }, mockTypingAfter);
-
-    responseMessages.map((message, index) =>
-      new Promise(resolve => setTimeout(() => {
-        typeOutResponse(message);
-        resolve();
-      }, mockResponseAfter * (index + 1)))
-
-    );
-    showTyping.value = false;
-    userInput.value = '';
+  if (userMessage == '') {
+    waitingOnResponse.value = false;
+    return;
   }
+  messages.push(ref({
+    id: messages.length,
+    text: userMessage,
+    sender: 'user',
+    beingTyped: false
+  }));
+
+  const responseMessages = botService.getResponse(userMessage);
+
+  if (checkSameMessage.value) {
+    responseMessages.push(`<iframe src="https://giphy.com/embed/26uf1EUQzKKGcIhJS" width="480" height="331" style="" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/hulu-fox-family-guy-26uf1EUQzKKGcIhJS">via GIPHY</a></p>`);
+    responseMessages.push('heyy.. Why are you send me same quaction ??');
+  }
+
+  setTimeout(() => {
+    showTyping.value = true;
+  }, mockTypingAfter);
+
+  responseMessages.map((message, index) =>
+    new Promise(resolve => setTimeout(() => {
+      typeOutResponse(message);
+      resolve();
+    }, mockResponseAfter * (index + 1)))
+
+  );
+  showTyping.value = false;
+  userInput.value = '';
+
 };
 
 const mockResponse = () => {
