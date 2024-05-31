@@ -1,6 +1,6 @@
 // BotService.js
-import intents1 from './../datasets/intents.json';
-import intents2 from './../datasets/intents1.json';
+import intents1 from "./../datasets/intents.json";
+import intents2 from "./../datasets/intents1.json";
 
 class BotService {
   constructor() {
@@ -26,7 +26,11 @@ class BotService {
         if (s.charAt(i - 1) == t.charAt(j - 1)) {
           d[i][j] = d[i - 1][j - 1];
         } else {
-          d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + 1);
+          d[i][j] = Math.min(
+            d[i - 1][j] + 1,
+            d[i][j - 1] + 1,
+            d[i - 1][j - 1] + 1
+          );
         }
       }
     }
@@ -74,18 +78,25 @@ class BotService {
     const intent = this.findIntent(userMessage);
     if (intent) {
       const resLen = intent.responses.length;
-      const randomIndex = window.crypto ? window.crypto.getRandomValues(new Uint32Array(1))[0] % resLen : Math.floor(Math.random() * resLen);
+      const randomIndex = window.crypto
+        ? window.crypto.getRandomValues(new Uint32Array(1))[0] % resLen
+        : Math.floor(Math.random() * resLen);
 
-      if (intent.tag == 'capture_name') {
+      if (intent.tag == "capture_name") {
         const name = this.extractName(userMessage);
-        localStorage.setItem('name', name);
-        return [intent.responses[randomIndex].replace("{name}", name)]
-      } else if (intent.tag == 'ask_name') {
-        const name = localStorage.getItem('name');
-        return [intent.responses[randomIndex].replace("{name}", name)]
+        localStorage.setItem("name", name);
+        return [intent.responses[randomIndex].replace("{name}", name)];
+      } else if (intent.tag == "ask_name") {
+        const name = localStorage.getItem("name");
+        return [intent.responses[randomIndex].replace("{name}", name)];
       }
 
-      return this._bestPattern ? [`Showing results for: ${this._bestPattern}`, `${intent.responses[randomIndex]}`] : [`${intent.responses[randomIndex]}`];
+      return this._bestPattern
+        ? [
+            `Showing results for: ${this._bestPattern}`,
+            `${intent.responses[randomIndex]}`,
+          ]
+        : [`${intent.responses[randomIndex]}`];
     } else {
       return ["I'm sorry, I couldn't understand."];
     }
@@ -96,7 +107,7 @@ class BotService {
       /my name is (\w+)/i,
       /i am (\w+)/i,
       /you can call me (\w+)/i,
-      /it's (\w+)/i
+      /it's (\w+)/i,
     ];
 
     for (let pattern of namePatterns) {

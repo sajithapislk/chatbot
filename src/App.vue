@@ -1,10 +1,8 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from "vue";
 import BotService from "./services/BotService";
+import SpeechRecognitionService from "./services/SpeechRecognitionService";
 
-const recognitionSvc =
-  window.SpeechRecognition || window.webkitSpeechRecognition;
-const recognition = new recognitionSvc();
 const isRecording = ref(false);
 
 const userInput = ref("");
@@ -17,6 +15,8 @@ const mockTypingAfter = 1500;
 const mockResponseAfter = 3000;
 
 const botService = new BotService();
+const speechRecognitionService = new SpeechRecognitionService();
+
 const sendMessage = () => {
   if (waitingOnResponse.value) return;
   waitingOnResponse.value = true;
@@ -115,36 +115,13 @@ const checkSameMessage = computed(() => {
   return false;
 });
 
-const initRecognition = () => {
-  recognition.continuous = true;
-  recognition.onstart = () => {
-    console.log("SR Started");
-    isRecording.value = true;
-  };
-  recognition.onend = () => {
-    console.log("SR Stopped");
-    isRecording.value = false;
-  };
-  recognition.onresult = (event) => {
-    // iterate through speech recognition results
-    for (const result of event.results) {
-      // Print the transcription to the console
-      console.log(`${result[0].transcript}`);
-      userInput.value = result[0].transcript;
-    }
-  };
-};
 onMounted(() => {
   mockResponse();
-  initRecognition();
+  speechRecognitionService.initRecognition(isRecording, userInput);
 });
 
 const ToggleMic = () => {
-  if (isRecording.value) {
-    recognition.stop();
-  } else {
-    recognition.start();
-  }
+  speechRecognitionService.toggleMic(isRecording);
 };
 </script>
 
@@ -200,13 +177,16 @@ const ToggleMic = () => {
           placeholder="Your message..."
         />
         <button
-          class="bg-transparent  px-4 py-2 rounded-md"
+          class="bg-transparent px-4 py-2 rounded-md"
           type="button"
           @click="ToggleMic"
         >
           <svg
-          class="w-6 fill-current"
-          :class="{ 'text-black': isRecording==false,'text-red-600': isRecording }"
+            class="w-6 fill-current"
+            :class="{
+              'text-black': isRecording == false,
+              'text-red-600': isRecording,
+            }"
             version="1.1"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512"
