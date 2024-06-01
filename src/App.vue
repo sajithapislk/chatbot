@@ -4,6 +4,7 @@ import BotService from "./services/BotService";
 import SpeechRecognitionService from "./services/SpeechRecognitionService";
 
 const isRecording = ref(false);
+const dp = ref();
 
 const userInput = ref("");
 const messages = reactive([]);
@@ -36,7 +37,7 @@ const sendMessage = () => {
     })
   );
 
-  const responseMessages = botService.getResponse(userMessage);
+  const responseMessages = botService.getResponse(userMessage,dp);
 
   if (checkSameMessage.value) {
     responseMessages.push(
@@ -109,13 +110,16 @@ const checkSameMessage = computed(() => {
     ];
 
     if (lastTwoMessages.every((msg) => msg.value.text === _message)) {
+      botService.profileService.checkEmotion('angry',dp);
       return true;
     }
   }
+  
   return false;
 });
 
 onMounted(() => {
+  botService.profileService.checkEmotion(null,dp);
   mockResponse();
   speechRecognitionService.initRecognition(isRecording, userInput);
 });
@@ -128,7 +132,8 @@ const ToggleMic = () => {
 <template>
   <div class="w-screen h-screen bg-gray-50 flex flex-col" x-data="chat">
     <div class="bg-gray-800 flex justify-center p-4">
-      <span class="text-white text-bold">Chatbot</span>
+      <span class="text-white text-bold text-4xl mr-8">Healthcare Chatbot</span>
+      <img class="h-28 rounded-full border-4 border-white -mb-16" :src="dp" alt="">
     </div>
 
     <div class="w-full max-w-screen-lg flex-1 m-auto p-8 my-4 pb-20">

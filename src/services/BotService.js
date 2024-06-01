@@ -1,11 +1,12 @@
-// BotService.js
 import intents1 from "./../datasets/intents.json";
 import intents2 from "./../datasets/intents1.json";
+import ProfileService from "./../services/ProfileService";
 
 class BotService {
   constructor() {
     this.intents = [...intents1.intents, ...intents2.intents];
     this._bestPattern;
+    this.profileService = new ProfileService();
   }
 
   levenshteinDistance(s, t) {
@@ -73,7 +74,7 @@ class BotService {
     }
   }
 
-  getResponse(userMessage) {
+  getResponse(userMessage, dp) {
     this._bestPattern = null;
     const intent = this.findIntent(userMessage);
     if (intent) {
@@ -90,6 +91,8 @@ class BotService {
         const name = localStorage.getItem("name");
         return [intent.responses[randomIndex].replace("{name}", name)];
       }
+
+      this.profileService.checkEmotion(intent.tag,dp);
 
       return this._bestPattern
         ? [
