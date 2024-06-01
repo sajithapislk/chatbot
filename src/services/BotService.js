@@ -78,6 +78,8 @@ class BotService {
     this._bestPattern = null;
     const intent = this.findIntent(userMessage);
     if (intent) {
+      this.profileService.checkEmotion(intent.tag,dp);
+
       const resLen = intent.responses.length;
       const randomIndex = window.crypto
         ? window.crypto.getRandomValues(new Uint32Array(1))[0] % resLen
@@ -91,8 +93,6 @@ class BotService {
         const name = localStorage.getItem("name");
         return [intent.responses[randomIndex].replace("{name}", name)];
       }
-
-      this.profileService.checkEmotion(intent.tag,dp);
 
       return this._bestPattern
         ? [
