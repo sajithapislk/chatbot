@@ -76,29 +76,6 @@
       "context_set": ""
     },
     {
-      "tag": "creator",
-      "patterns": [
-        "what is the name of your developers",
-        "what is the name of your creators",
-        "what is the name of the developers",
-        "what is the name of the creators",
-        "who created you",
-        "your developers",
-        "your creators",
-        "who are your developers",
-        "developers",
-        "you are made by",
-        "you are made by whom",
-        "who created you",
-        "who create you",
-        "creators",
-        "who made you",
-        "who designed you"
-      ],
-      "responses": ["College students"],
-      "context_set": ""
-    },
-    {
       "tag": "name",
       "patterns": [
         "name",
